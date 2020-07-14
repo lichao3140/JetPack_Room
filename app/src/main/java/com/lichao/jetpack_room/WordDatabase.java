@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-@Database(entities = {Word.class}, version = 1, exportSchema = false)
+@Database(entities = {Word.class}, version = 2, exportSchema = false)
 public abstract class WordDatabase extends RoomDatabase {
 
     private static WordDatabase INSTANCE;
@@ -18,7 +18,7 @@ public abstract class WordDatabase extends RoomDatabase {
         if (INSTANCE == null) {
             INSTANCE = Room.databaseBuilder(context.getApplicationContext(), WordDatabase.class, "word_database")
                     //.fallbackToDestructiveMigration() //强制数据库版本升级，有数据丢失，不采取
-                    .addMigrations()// 数据库版本升级管理
+                    .addMigrations(MIGRATION_1_2)// 数据库版本升级管理
                     .build();
         }
         return INSTANCE;
@@ -30,7 +30,7 @@ public abstract class WordDatabase extends RoomDatabase {
      * 数据库版本从 2 升级到 3
      * 数据增加一行字段 bar_data
      */
-    static final Migration MIGRATION_2_3 = new Migration(2,3) {
+    static final Migration MIGRATION_2_3 = new Migration(2, 3) {
 
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
@@ -42,7 +42,7 @@ public abstract class WordDatabase extends RoomDatabase {
      * 数据库从 4 升级到 5
      * 升级数据库修改数据库字段
      */
-    static final Migration MIGRATION_3_4 = new Migration(3,4) {
+    static final Migration MIGRATION_3_4 = new Migration(3, 4) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL("CREATE TABLE word_temp (id INTEGER PRIMARY KEY NOT NULL , english_word TEXT," +
@@ -51,6 +51,16 @@ public abstract class WordDatabase extends RoomDatabase {
                     "SELECT id,english_word,chinese_meaning FROM word");
             database.execSQL("DROP TABLE word");
             database.execSQL("ALTER TABLE word_temp RENAME to word");
+        }
+    };
+
+    /**
+     * 数据库从1升级到2增加字段chinese_invisible
+     */
+    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE word ADD COLUMN chinese_invisible INTEGER NOT NULL DEFAULT 0");
         }
     };
 }

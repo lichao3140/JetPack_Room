@@ -22,6 +22,12 @@ public class Word {
     @ColumnInfo(name = "chinese_Meaning")
     private String chineseMeaning;
 
+    /**
+     * 中文是否可见
+     */
+    @ColumnInfo(name = "chinese_invisible")
+    private boolean chineseInvisible;
+
     public long getId() {
         return id;
     }
@@ -49,5 +55,13 @@ public class Word {
     public Word(String word, String chineseMeaning) {
         this.word = word;
         this.chineseMeaning = chineseMeaning;
+    }
+
+    public boolean isChineseInvisible() {
+        return chineseInvisible;
+    }
+
+    public void setChineseInvisible(boolean chineseInvisible) {
+        this.chineseInvisible = chineseInvisible;
     }
 }
