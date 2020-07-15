@@ -13,6 +13,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -69,11 +70,9 @@ public class WordsFragment extends Fragment {
                     @Override
                     public void onChanged(List<Word> words) {
                         int temp = myAdapter1.getItemCount();
-                        myAdapter1.setAllWords(words);
-                        myAdapter2.setAllWords(words);
                         if (temp!=words.size()) {
-                            myAdapter1.notifyDataSetChanged();
-                            myAdapter2.notifyDataSetChanged();
+                            myAdapter1.submitList(words);
+                            myAdapter2.submitList(words);
                         }
                     }
                 });
@@ -138,6 +137,26 @@ public class WordsFragment extends Fragment {
         myAdapter1 = new MyAdapter(false, wordViewModel);
         myAdapter2 = new MyAdapter(true, wordViewModel);
 
+        recyclerView.setItemAnimator(new DefaultItemAnimator(){
+            @Override
+            public void onAnimationFinished(@NonNull RecyclerView.ViewHolder viewHolder) {
+                super.onAnimationFinished(viewHolder);
+                // 动画完成进行刷新序号
+                LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (linearLayoutManager != null) {
+                    int firstPosition = linearLayoutManager.findFirstVisibleItemPosition();// 第一个可以的位置
+                    int lastPosition = linearLayoutManager.findLastVisibleItemPosition();// 最后一个可见的位置
+
+                    for (int i = firstPosition; i <= lastPosition; i++) {
+                        MyAdapter.MyViewHolder holder = (MyAdapter.MyViewHolder) recyclerView.findViewHolderForAdapterPosition(i);
+                        if (holder != null) {
+                            holder.textViewNumber.setText(String.valueOf(i + 1));
+                        }
+                    }
+                }
+            }
+        });
+
         // 获取切换视图的状态
         SharedPreferences shp = requireActivity().getSharedPreferences(VIEW_TYPE_SHP,Context.MODE_PRIVATE);
         boolean viewType = shp.getBoolean(IS_USING_CARD_VIEW,false);
@@ -152,11 +171,11 @@ public class WordsFragment extends Fragment {
             @Override
             public void onChanged(List<Word> words) {
                 int temp = myAdapter1.getItemCount();
-                myAdapter1.setAllWords(words);
-                myAdapter2.setAllWords(words);
+
                 if (temp != words.size()) {
-                    myAdapter1.notifyDataSetChanged();
-                    myAdapter2.notifyDataSetChanged();
+                    recyclerView.smoothScrollBy(0,-200); //向下滑动200像素
+                    myAdapter1.submitList(words);
+                    myAdapter2.submitList(words);
                 }
             }
         });
