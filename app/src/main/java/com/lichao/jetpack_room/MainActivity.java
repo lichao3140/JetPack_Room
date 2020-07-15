@@ -1,112 +1,40 @@
 package com.lichao.jetpack_room;
 
+import android.content.Context;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.Switch;
+import android.view.inputmethod.InputMethodManager;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import java.util.List;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.NavigationUI;
 
 public class MainActivity extends AppCompatActivity {
-    Button buttonInsert,buttonClear;
-    WordViewModel wordViewModel;
-    RecyclerView recyclerView;
-    Switch aSwitch;
-    MyAdapter myAdapter1, myAdapter2;
+    private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        recyclerView = findViewById(R.id.recyclerView);
-        aSwitch = findViewById(R.id.switch1);
-        buttonInsert = findViewById(R.id.buttonInsert);
-        buttonClear = findViewById(R.id.buttonClear);
 
-        wordViewModel = new ViewModelProvider(this).get(WordViewModel.class);
+        // Fragment返回按键
+        navController = Navigation.findNavController(findViewById(R.id.fragment));
+        NavigationUI.setupActionBarWithNavController(this, navController);
+    }
 
-        // List的卡片样式
-        myAdapter1 = new MyAdapter(false, wordViewModel);
-        myAdapter2 = new MyAdapter(true, wordViewModel);
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        navController.navigateUp();
+    }
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(myAdapter1);
-
-        // 使用ViewModel的观察者来管控数据库的变化
-        wordViewModel.getAllWordsLive().observe(this, new Observer<List<Word>>() {
-            @Override
-            public void onChanged(List<Word> words) {
-                int temp = myAdapter1.getItemCount();
-                myAdapter1.setAllWords(words);
-                myAdapter2.setAllWords(words);
-                if (temp!=words.size()) {
-                    // 数据库变化时再通知刷新
-                    myAdapter1.notifyDataSetChanged();
-                    myAdapter2.notifyDataSetChanged();
-                }
-            }
-        });
-
-        buttonInsert.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String[] english = {
-                        "Hello",
-                        "World",
-                        "Android",
-                        "Google",
-                        "Studio",
-                        "Project",
-                        "Database",
-                        "Recycler",
-                        "View",
-                        "String",
-                        "Value",
-                        "Integer"
-                };
-                String[] chinese = {
-                        "你好",
-                        "世界",
-                        "安卓系统",
-                        "谷歌公司",
-                        "工作室",
-                        "项目",
-                        "数据库",
-                        "回收站",
-                        "视图",
-                        "字符串",
-                        "价值",
-                        "整数类型"
-                };
-                for(int i = 0;i<english.length;i++) {
-                    wordViewModel.insertWords(new Word(english[i],chinese[i]));
-                }
-            }
-        });
-
-        buttonClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                wordViewModel.deleteAllWords();
-            }
-        });
-
-        aSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    recyclerView.setAdapter(myAdapter2);
-                } else {
-                    recyclerView.setAdapter(myAdapter1);
-                }
-            }
-        });
+    @Override
+    public boolean onSupportNavigateUp() {
+        // 隐藏键盘
+        InputMethodManager imm = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(findViewById(R.id.fragment).getWindowToken(),0);
+        // 返回
+        navController.navigateUp();
+        return super.onSupportNavigateUp();
     }
 }
